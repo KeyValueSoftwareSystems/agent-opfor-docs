@@ -1,0 +1,77 @@
+---
+title: "Config reference"
+description: "Every field in an opfor config file."
+---
+
+An opfor config is a flat JSON object. `target.kind` selects the pipeline; the rest configure selection, models, run shape, and telemetry. Generate one with `opfor setup` or hand-write it.
+
+## Common fields
+
+| Field                  | Required                      | Description                                                                          |
+| ---------------------- | ----------------------------- | ------------------------------------------------------------------------------------ |
+| `target.kind`          | Yes                           | `"agent"` or `"mcp"`                                                                  |
+| `selection.mode`       | Yes                           | `"suite"` or `"evaluators"`                                                           |
+| `selection.suite`      | For suite                     | Suite ID — see the [evaluator reference](/evaluators/reference)                       |
+| `selection.evaluators` | For evaluators                | Array of evaluator IDs                                                                |
+| `attackerLlm.provider` | Yes                           | See [providers](/reference/providers)                                                |
+| `attackerLlm.model`    | Yes                           | Model name (e.g. `gpt-4o-mini`)                                                       |
+| `attackerLlm.apiKeyEnv`| Yes                           | Env var **name** holding the API key                                                 |
+| `attackerLlm.baseURL`  | For openai-compatible / azure | Base URL for the LLM endpoint                                                         |
+| `judgeLlm.*`           | No                            | Same fields as `attackerLlm`; a separate judge model. Falls back to `attackerLlm`     |
+| `effort`               | Yes                           | `"adaptive"` or `"comprehensive"`                                                     |
+| `turnMode`             | No                            | `"single"` (default) or `"multi"`                                                    |
+| `turns`                | Yes                           | Turns per attack. Ignored when `turnMode` is `"single"`. Range 1–10 (wizard default 3) |
+| `telemetry`            | No                            | Trace-aware testing — see [telemetry](/telemetry/overview)                                    |
+
+<Warning>`apiKeyEnv` is the **env var name** holding the key, never the key itself. Don't put raw keys in a config file.</Warning>
+
+## Agent target (`target.kind: "agent"`)
+
+| Field                   | Required           | Description                                                                                          |
+| ----------------------- | ------------------ | ---------------------------------------------------------------------------------------------------- |
+| `target.name`           | Yes                | Human-readable name. Used as the report slug                                                         |
+| `target.description`    | Yes                | What it does, data it handles, restrictions. More detail = better attacks                            |
+| `target.type`           | Yes                | `"http-endpoint"` or `"local-script"`                                                                |
+| `target.endpoint`       | For HTTP           | Full URL to POST attacks to                                                                          |
+| `target.requestFormat`  | For HTTP           | `"openai"`, `"json"`, or `"auto"` (default). Ignored when `stateful` is `false` (forces OpenAI shape) |
+| `target.model`          | For HTTP / openai  | Model name to send in the request body                                                               |
+| `target.apiKeyEnv`      | No                 | Env var **name** holding the target's API key                                                        |
+| `target.headers`        | No                 | Custom HTTP headers, merged with built-ins                                                           |
+| `target.promptPath`     | No                 | Dot-path for the prompt field (e.g. `"input.message"`). Defaults to top-level `prompt`               |
+| `target.responsePath`   | No                 | Dot-path to extract the reply (e.g. `"data.reply"`)                                                  |
+| `target.sessionIdField` | No                 | Body field for the session ID on multi-turn requests (stateful only)                                 |
+| `target.stateful`       | No                 | `true` (default): send current prompt + session ID. `false`: send full chat history each turn        |
+| `target.scriptPath`     | For `local-script` | Path to the `.js`/`.py` adapter, relative to cwd                                                     |
+
+### Stateful vs stateless
+
+| `target.stateful` | Use when                                                            | Opfor sends per turn                                                        |
+| ----------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `true` (default)  | Your app keeps conversation history, keyed by a session id          | Only the current prompt + a session id at `target.sessionIdField`           |
+| `false`           | Raw, stateless LLM endpoints (OpenAI, Groq, vLLM, LiteLLM…)          | The full `{role, content}` history as a chat-completions `messages` array   |
+
+## MCP target (`target.kind: "mcp"`)
+
+| Field                | Required  | Description                                                               |
+| -------------------- | --------- | ------------------------------------------------------------------------- |
+| `target.name`        | Yes       | Human-readable name. Used as the report slug                              |
+| `target.description` | No        | Short note on the server; helps attack prompts when provided              |
+| `target.transport`   | Yes       | `"stdio"` (local process) or `"url"` (remote endpoint)                    |
+| `target.command`     | For stdio | Executable to run (e.g. `"node"`)                                         |
+| `target.args`        | For stdio | Array of CLI args (e.g. `["dist/index.js"]`)                              |
+| `target.cwd`         | No        | Working directory for the spawned process (stdio only)                    |
+| `target.env`         | No        | Env vars passed to the spawned server. Values support `${VAR}` expansion  |
+| `target.url`         | For url   | Full HTTP/SSE endpoint URL                                                |
+| `target.urlHeaders`  | No        | HTTP headers for the URL transport. Values support `${VAR}` expansion     |
+
+## Local script contract
+
+A `local-script` target receives one attack per process over stdin/stdout:
+
+| Stream     | Content                                                                                             |
+| ---------- | --------------------------------------------------------------------------------------------------- |
+| **Stdin**  | `{"prompt":"...","context":{...},"sessionId":"..."}`. `sessionId` is present only for multi-turn     |
+| **Stdout** | `{"response":"..."}` on success, or `{"error":"..."}` on failure. Don't print debug lines to stdout  |
+| **Stderr** | Log freely — the CLI forwards stderr to your terminal                                                |
+
+The interpreter is picked from the file extension: `.py`/`.pyw` → `python3`, `.js`/`.mjs`/`.cjs` → `node`.

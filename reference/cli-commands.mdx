@@ -1,0 +1,75 @@
+---
+title: "CLI commands"
+description: "Every opfor command and flag."
+---
+
+Three commands: `setup` writes a config, `run` fires a scan from one, and `hunt` runs an autonomous campaign. Run `opfor <command> --help` for the live version any time.
+
+## `opfor setup`
+
+Interactive wizard that writes a timestamped config to `.opfor/configs/`.
+
+| Flag              | Description                                      |
+| ----------------- | ------------------------------------------------ |
+| `--agent`         | Skip the mode prompt, go to the agent wizard     |
+| `--mcp`           | Skip the mode prompt, go to the MCP wizard       |
+| `--empty`         | Write a minimal config without prompts           |
+| `--config <path>` | Override the output config path                  |
+| `--env <path>`    | Load env vars from a non-default `.env` path     |
+
+## `opfor run`
+
+Reads a config, fires attacks, judges, and writes the report. With no `--config`, it runs the setup wizard inline first.
+
+| Flag               | Description                                            |
+| ------------------ | ------------------------------------------------------ |
+| `--config <file>`  | Config to run. Omit to run the wizard inline           |
+| `--effort <e>`     | Override effort (`adaptive` or `comprehensive`)        |
+| `--turns <n>`      | Override turn count (`1` forces single-turn)           |
+| `--output <dir>`   | Override report parent directory (default `.opfor/reports/`) |
+| `--env <path>`     | Load env vars from a non-default `.env` path           |
+
+## `opfor hunt`
+
+Autonomous red-team campaign driven by an AI agent. See the [autonomous mode guide](/cli/autonomous) for details.
+
+<AccordionGroup>
+  <Accordion title="Target">
+    | Flag                         | Description                          |
+    | ---------------------------- | ------------------------------------ |
+    | `--endpoint <url>`           | Target HTTP endpoint (required)      |
+    | `--objective <text>`         | Attack objective                     |
+    | `--objective-file <path>`    | Read objective from a file           |
+    | `--target-key-env <var>`     | Env var holding the target API key   |
+    | `--target-key <key>`         | Target API key directly              |
+    | `--name <name>`              | Display name for the target          |
+    | `--target-model <id>`        | Model value sent in requests         |
+    | `--stateless` / `--stateful` | Conversation history handling        |
+  </Accordion>
+  <Accordion title="Models">
+    | Flag                    | Default  |
+    | ----------------------- | -------- |
+    | `--model <id>`          | `sonnet`   |
+    | `--operator-model <id>` | `sonnet` |
+    | `--scout-model <id>`    | `haiku`  |
+  </Accordion>
+  <Accordion title="Limits">
+    | Flag                      | Default | Purpose                          |
+    | ------------------------- | ------- | -------------------------------- |
+    | `--budget-usd <n>`        | `10`    | Hard USD budget (`0` = unlimited) |
+    | `--max-operators <n>`     | `6`     | Parallel operators               |
+    | `--max-turns <n>`         | `120`   | Total agentic turns              |
+    | `--max-thread-turns <n>`  | `25`    | Per-thread depth ceiling         |
+    | `--max-total-threads <n>` | `40`    | Total attack threads             |
+    | `--max-depth <n>`         | `3`     | Exploration generations          |
+    | `--max-recon-probes <n>`  | `8`     | Benign recon probes              |
+  </Accordion>
+  <Accordion title="Output">
+    | Flag               | Default          | Purpose               |
+    | ------------------ | ---------------- | --------------------- |
+    | `--output <dir>`   | `.opfor/reports` | Report directory      |
+    | `--ui`             | off              | Launch live dashboard |
+    | `--ui-port <port>` | `3847`           | Dashboard port        |
+    | `--env <path>`     | —                | Load a `.env` file    |
+  </Accordion>
+</AccordionGroup>

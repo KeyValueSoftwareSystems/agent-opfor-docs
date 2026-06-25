@@ -1,0 +1,78 @@
+---
+title: "Quickstart"
+description: "Run your first red-team scan and get a report."
+---
+
+This walks you from install to a finished report using the CLI. It takes a few minutes.
+
+## Prerequisites
+
+- **Node.js 18+**
+- **An LLM API key** for the attacker/judge model — e.g. `OPENAI_API_KEY`, `GROQ_API_KEY`, or `ANTHROPIC_API_KEY`
+- **A target to test** — an HTTP chat endpoint or a local script (you'll be asked for it during setup)
+
+<Steps>
+  <Step title="Install">
+    ```bash
+    npm install -g @agent-opfor/cli
+    ```
+  </Step>
+
+  <Step title="Set your API key">
+    The attacker and judge LLMs use this key. Set it in your shell or a `.env` file in the current directory.
+
+    ```bash
+    export OPENAI_API_KEY=sk-...
+    ```
+
+    <Note>This is the key for the LLM that *generates and judges* attacks — separate from any key your target endpoint needs.</Note>
+  </Step>
+
+  <Step title="Run the scan">
+    ```bash
+    opfor run
+    ```
+
+    With no `--config`, `run` runs the setup wizard inline — it asks for your target, a suite, effort, and turns — writes the config to `.opfor/configs/`, then immediately fires the attacks and judges the responses.
+  </Step>
+
+  <Step title="Read the report">
+    Each run lands in its own folder:
+
+    ```
+    .opfor/reports/run-report-<timestamp>-<slug>-<id>/
+    ├── <slug>-report.html
+    └── <slug>-report.json
+    ```
+
+    Open the HTML file in a browser for the cover, executive summary, findings, and per-turn detail. Use the JSON in CI.
+  </Step>
+</Steps>
+
+## Split setup and execution
+
+For CI — or to review the config before firing attacks — run the two steps separately:
+
+```bash
+opfor setup                  # interactive wizard → writes a config
+opfor run --config <path>    # runs attacks + judges → writes the report
+```
+
+The setup wizard prints the exact `--config` path on its last line.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="CLI overview" icon="terminal" href="/cli/overview">
+    Configs, targets, effort, and multi-turn attacks.
+  </Card>
+  <Card title="Core concepts" icon="lightbulb" href="/get-started/concepts">
+    How targets, evaluators, and judging fit together.
+  </Card>
+  <Card title="Evaluators & suites" icon="shield-halved" href="/evaluators/overview">
+    Choose what to test against.
+  </Card>
+  <Card title="Trace-aware testing" icon="eye" href="/telemetry/overview">
+    Let the judge see tool calls and retrievals, not just the reply.
+  </Card>
+</CardGroup>

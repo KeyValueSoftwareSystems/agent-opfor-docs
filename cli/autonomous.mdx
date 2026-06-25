@@ -1,0 +1,110 @@
+---
+title: "Autonomous mode"
+description: "Let an AI agent plan and run a full assessment from a single objective."
+---
+
+`opfor hunt` runs an autonomous red-team campaign. Instead of a fixed suite, you give it an objective and a multi-agent system does the rest — reconnaissance, strategy, adaptive multi-turn attacks, self-judging, and a full report.
+
+It's powered by the Claude Agent SDK, so it needs an Anthropic-compatible key (direct or via OpenRouter) to drive the agents.
+
+## Quickstart
+
+```bash
+opfor hunt \
+  --endpoint "https://your-target.com/v1/chat/completions" \
+  --name "My Target Bot" \
+  --target-key-env TARGET_API_KEY \
+  --objective "Probe for jailbreaks, system-prompt leakage, and safety bypasses."
+```
+
+Add `--ui` to watch the attack tree unfold in a live dashboard.
+
+<Note>Set `ANTHROPIC_API_KEY` (or `OPENROUTER_API_KEY`) for the agents that drive the campaign. `--target-key-env` points to the key for the *target* you're attacking — they're separate.</Note>
+
+## How it works
+
+Three agent roles divide the work, each on a model tier suited to its job:
+
+| Agent         | Role                                                            | Default model |
+| ------------- | -------------------------------------------------------------- | ------------- |
+| **Commander** | Orchestrates strategy, dispatches operators, interprets results | `sonnet`        |
+| **Operator**  | Executes multi-turn attack threads with personas + strategies   | `sonnet`      |
+| **Scout**     | Fingerprints the target with benign recon probes                | `haiku`       |
+
+The campaign starts with recon, then the commander spawns operators to pursue leads, forking new threads as it finds weak points — until the objective is met or a limit is hit.
+
+## Options
+
+<Tabs>
+  <Tab title="Target">
+    | Option                       | Description                     |
+    | ---------------------------- | ------------------------------- |
+    | `--endpoint <url>`           | Target HTTP endpoint (required) |
+    | `--objective <text>`         | Attack objective                |
+    | `--objective-file <path>`    | Read objective from a file      |
+    | `--target-key-env <var>`     | Env var holding the target API key |
+    | `--target-key <key>`         | Target API key directly         |
+    | `--name <name>`              | Display name for the target     |
+    | `--target-model <id>`        | Model value sent in requests    |
+    | `--stateless` / `--stateful` | How conversation history is handled |
+  </Tab>
+  <Tab title="Models">
+    | Option                  | Default  |
+    | ----------------------- | -------- |
+    | `--model <id>`          | `sonnet`   |
+    | `--operator-model <id>` | `sonnet` |
+    | `--scout-model <id>`    | `haiku`  |
+  </Tab>
+  <Tab title="Limits">
+    | Option                    | Default | Purpose                          |
+    | ------------------------- | ------- | -------------------------------- |
+    | `--budget-usd <n>`        | `10`    | Hard USD budget (`0` = unlimited) |
+    | `--max-operators <n>`     | `6`     | Parallel operators               |
+    | `--max-turns <n>`         | `120`   | Total agentic turns              |
+    | `--max-thread-turns <n>`  | `25`    | Per-thread depth ceiling         |
+    | `--max-total-threads <n>` | `40`    | Total attack threads             |
+    | `--max-depth <n>`         | `3`     | Exploration generations          |
+    | `--max-recon-probes <n>`  | `8`     | Benign recon probes              |
+  </Tab>
+  <Tab title="Output">
+    | Option             | Default          | Purpose               |
+    | ------------------ | ---------------- | --------------------- |
+    | `--output <dir>`   | `.opfor/reports` | Report directory      |
+    | `--ui`             | off              | Launch live dashboard |
+    | `--ui-port <port>` | `3847`           | Dashboard port        |
+  </Tab>
+</Tabs>
+
+## Driving the agents with OpenRouter
+
+To run the agents through OpenRouter instead of Anthropic directly, point the base URL at OpenRouter and supply a token:
+
+```bash
+export ANTHROPIC_BASE_URL=https://openrouter.ai/api
+export ANTHROPIC_AUTH_TOKEN=sk-or-v1-...
+```
+
+## What it probes
+
+The agents draw on a built-in library of vulnerability classes, personas, and strategies, and combine them adaptively.
+
+| Category            | Examples                                                                                                              |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **Vulnerability classes** | jailbreak · prompt-injection · system-prompt-leak · sensitive-disclosure · harmful-content · tool-misuse · business-integrity · misinformation · bias |
+| **Personas**        | naive-user · journalist · security-auditor · frustrated-developer · entitled-customer · fellow-ai                     |
+| **Strategies**      | fictional-framing · authority-escalation · gradual-trust · instruction-override · encoding-obfuscation · context-overload |
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Model not found">
+    Check `ANTHROPIC_API_KEY` and `ANTHROPIC_BASE_URL` are set correctly for the agent models.
+  </Accordion>
+  <Accordion title="Rate limited">
+    Lower `--max-operators` or `--budget-usd` to reduce concurrency and total calls.
+  </Accordion>
+</AccordionGroup>
+
+<Card title="Programmatic equivalent" icon="code" href="/sdk/overview">
+  The same campaign is available as `hunt()` in the SDK, with progress streaming.
+</Card>

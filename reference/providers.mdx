@@ -1,0 +1,49 @@
+---
+title: "LLM providers"
+description: "Supported attacker/judge LLM providers and their env vars."
+---
+
+The attacker and judge LLMs run on a provider you choose. Set the provider's API key in your shell or a `.env` file before running, then reference it by **name** in `attackerLlm.apiKeyEnv`.
+
+## Supported providers
+
+| Provider            | `provider` value    | Env var                        | Default model               | Notes                          |
+| ------------------- | ------------------- | ------------------------------ | --------------------------- | ------------------------------ |
+| OpenAI              | `openai`            | `OPENAI_API_KEY`               | `gpt-4o-mini`               |                                |
+| Anthropic           | `anthropic`         | `ANTHROPIC_API_KEY`            | `claude-3-5-haiku-20241022` |                                |
+| Groq                | `groq`              | `GROQ_API_KEY`                 | `llama-3.3-70b-versatile`   |                                |
+| Google              | `google`            | `GOOGLE_GENERATIVE_AI_API_KEY` | `gemini-2.0-flash`          |                                |
+| DeepSeek            | `deepseek`          | `DEEPSEEK_API_KEY`             | `deepseek-chat`             |                                |
+| Azure OpenAI        | `azure`             | `AZURE_OPENAI_API_KEY`         | `gpt-4o-mini`               | requires `attackerLlm.baseURL` |
+| OpenAI-compatible   | `openai-compatible` | `OPFOR_API_KEY`                | (no default)                | requires `attackerLlm.baseURL` |
+
+<Note>`openai-compatible` covers LiteLLM, OpenRouter, Ollama, vLLM, and any other OpenAI-shaped endpoint — point `baseURL` at it.</Note>
+
+## Configuring a model
+
+```json
+"attackerLlm": {
+  "provider": "openai",
+  "model": "gpt-4o-mini",
+  "apiKeyEnv": "OPENAI_API_KEY"
+},
+"judgeLlm": {
+  "provider": "anthropic",
+  "model": "claude-3-5-haiku-20241022",
+  "apiKeyEnv": "ANTHROPIC_API_KEY"
+}
+```
+
+`judgeLlm` is optional — it falls back to `attackerLlm` when omitted. For `azure` and `openai-compatible`, add `"baseURL"`.
+
+## Setting keys
+
+```bash
+export OPENAI_API_KEY=sk-...
+export GROQ_API_KEY=gsk_...
+export ANTHROPIC_API_KEY=sk-ant-...
+```
+
+The CLI loads `.env` from the working directory automatically. Load a non-default path with `--env <path>`.
+
+<Warning>Add `.env` to `.gitignore`. The config stores the env var **name** (`apiKeyEnv`), never the key value.</Warning>

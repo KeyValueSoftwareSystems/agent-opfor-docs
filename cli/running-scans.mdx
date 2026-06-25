@@ -1,0 +1,79 @@
+---
+title: "Running scans"
+description: "Fire attacks, judge responses, and read the report."
+---
+
+Once you have a config, `opfor run` runs the whole pipeline end-to-end — generate attacks, fire them, judge, and write the report.
+
+## Run
+
+```bash
+opfor run --config .opfor/configs/opfor-config-<timestamp>-<id>.json
+```
+
+Runtime overrides (no config edit needed):
+
+```bash
+opfor run --config <path> --effort comprehensive   # override effort
+opfor run --config <path> --turns 5                # override turn count
+opfor run --config <path> --output ./my-reports    # custom report directory
+```
+
+Skip setup entirely — run the wizard inline, then execute:
+
+```bash
+opfor run
+```
+
+## Effort
+
+| Effort          | What it does                                                                                          |
+| --------------- | ---------------------------------------------------------------------------------------------------- |
+| `adaptive`      | One sustained conversation per evaluator. The attacker LLM picks tactics from the last response + judge signal. |
+| `comprehensive` | One fresh multi-turn attack per named pattern in each evaluator. Wider coverage, more LLM calls.       |
+
+## Single-turn vs multi-turn
+
+By default opfor runs **single-turn** — one attack, one response, judged. **Multi-turn** fires a short adversarial conversation: after each response, if the judge still rates the target PASS, the attacker generates a tougher follow-up (up to `turns`, default 3). It stops early when the judge returns FAIL.
+
+For HTTP agent targets, `target.stateful` controls how conversation context is delivered:
+
+| `target.stateful` | Use when                                                                       | Opfor sends per turn                                                        |
+| ----------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
+| `true` (default)  | Your app keeps conversation history itself, keyed by a session id              | Only the current prompt + a per-attack session id at `target.sessionIdField` |
+| `false`           | Raw, stateless LLM endpoints (OpenAI, Groq, vLLM, LiteLLM…)                     | The full `{role, content}` history as a chat-completions `messages` array    |
+
+<Note>For multi-turn against a raw LLM API, set `target.stateful: false` so opfor replays the whole conversation each turn.</Note>
+
+## MCP mode phases
+
+MCP scans add two phases agent mode doesn't have:
+
+- **Resource scan** — before attacking, opfor calls `resources/list` and `resources/read`, judging each for secret/PII exposure.
+- **Rug-pull check** — after attacking, opfor re-lists tools and diffs their descriptions against the initial snapshot, flagging any mutations.
+
+## Reports
+
+Each run lands in its own subfolder:
+
+```
+.opfor/reports/run-report-<compactTs>-<slug>-<shortId>/
+├── <slug>-report.html
+└── <slug>-report.json
+```
+
+`<slug>` is the slugified target name; `<shortId>` is the first 8 hex chars of the run's report ID. The default parent is `.opfor/reports/` — override with `--output`.
+
+- **HTML** — cover, executive summary, findings, and per-turn detail for browsing.
+- **JSON** — the same data structured for CI gating and dashboards.
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="Autonomous mode" icon="robot" href="/cli/autonomous">
+    Let an agent plan and drive the whole assessment with `opfor hunt`.
+  </Card>
+  <Card title="Trace-aware testing" icon="eye" href="/telemetry/overview">
+    Give the judge visibility into tool calls and retrievals.
+  </Card>
+</CardGroup>

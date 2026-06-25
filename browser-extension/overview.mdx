@@ -1,0 +1,94 @@
+---
+title: "Browser extension"
+description: "Red-team any chat UI from your browser — no code required."
+---
+
+The browser extension is opfor's no-code path. Install it, open any chat interface, click the icon, pick a suite, and watch it run. It's built for everyone who doesn't open a terminal — PMs, QA, designers, and security analysts.
+
+Everything runs **client-side in your browser** using your own LLM API keys. Nothing is sent to an opfor backend.
+
+<Note>The extension covers **agent / chatbot** red-teaming. For MCP servers, use the [CLI](/cli/overview) or [MCP server](/mcp-server/overview).</Note>
+
+## What it does
+
+- Auto-detects the chat widget on any page (custom UIs, Intercom, Zendesk, Drift, Salesforce, etc.)
+- Types attack prompts into the chat as if you were typing them, and watches the responses
+- Judges each response with an LLM and scores it pass / fail
+- Generates a self-contained HTML report you can download and share
+
+It uses the same agent evaluator catalog as the CLI.
+
+## Install
+
+<Steps>
+  <Step title="Add to your browser">
+    Open the [OPFOR listing on the Chrome Web Store](https://chromewebstore.google.com/) and click **Add to Chrome**. Works in any Chromium browser (Chrome, Edge, Brave, Arc).
+  </Step>
+  <Step title="Pin the icon">
+    Pin the OPFOR icon to your toolbar so it's one click away on any page.
+  </Step>
+</Steps>
+
+<Accordion title="Development install (from source)">
+  For contributors or testing unreleased changes:
+
+  ```bash
+  git clone https://github.com/KeyValueSoftwareSystems/agent-opfor.git
+  cd agent-opfor
+  npm install
+  npm run build:catalog --workspace=@agent-opfor/extension
+  ```
+
+  Then open `chrome://extensions`, enable **Developer mode**, click **Load unpacked**, and select the `runners/extension/` folder.
+</Accordion>
+
+## Configure your LLM
+
+The extension uses a single LLM configuration for attack generation, judging, and HTML parsing. It's stored in `chrome.storage.local` on your machine.
+
+| Setting      | Description                                                                     |
+| ------------ | ------------------------------------------------------------------------------- |
+| **Provider** | OpenAI, Anthropic, Google, Groq, DeepSeek, Azure, or Custom (OpenAI-compatible) |
+| **Model**    | Model name — pick a common one or type your own                                  |
+| **API Key**  | Your key for the selected provider                                               |
+
+<Tip>Use a capable model like GPT-4o or Claude Sonnet. Verdict quality depends on the model's reasoning ability.</Tip>
+
+The gear icon exposes advanced settings: turns per attack (1–20, default 10), wait-after-send, message length limit, a manual agent description (fallback when auto-detect fails), a custom attack objective, business context, and an extra judge hint.
+
+## Run a scan
+
+<Steps>
+  <Step title="Open the target">
+    Open the chat interface you want to test in a browser tab.
+  </Step>
+  <Step title="Launch opfor">
+    Click the OPFOR icon, then pick a **Security Suite** (e.g. OWASP LLM Top 10) or choose **Custom Evaluators** to select individual tests.
+  </Step>
+  <Step title="Set your LLM">
+    Confirm provider, model, and API key, then click **Execute**.
+  </Step>
+  <Step title="Watch and download">
+    The attacker types into the chat, the target replies, and live bubbles show the conversation. When it finishes, view the verdict and **Download report**.
+  </Step>
+</Steps>
+
+The extension runs up to 20 turns per evaluator (default 10) and stops an evaluator early once the judge returns a definitive verdict.
+
+<Card title="What it tests" icon="shield-halved" href="/evaluators/reference">
+  Same agent catalog as the CLI — full evaluator and suite reference.
+</Card>
+
+## Limitations
+
+- **Chat-widget targets only.** It needs a detectable chat input + response area in the DOM. For standalone API endpoints or non-chat agents, use the [CLI](/cli/overview).
+- **No MCP or live tool-call evaluators.** The judge sees the transcript, not real tool side-effects. For MCP servers use the CLI's `mcp` mode or the [MCP server](/mcp-server/overview).
+- **One agent per run** — no inter-agent tests.
+- **Vendor closed shadow-DOM widgets** (Salesforce, some Intercom builds) may need a vendor-specific fallback. Open an issue with a sample URL if auto-detect fails.
+- **No pause / resume across sessions** — run state lives in `chrome.storage.local`; uninstalling wipes it.
+
+## Privacy
+
+- API keys live in `chrome.storage.local` and never leave your browser. There is no opfor-hosted backend.
+- Attack prompts and target responses go only to the LLM providers you configure — the same data path as running the CLI on your own machine.
+- The extension does not phone home.

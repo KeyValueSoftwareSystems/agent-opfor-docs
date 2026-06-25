@@ -1,0 +1,132 @@
+---
+title: "CLI overview"
+description: "Install opfor and create a scan config."
+---
+
+The CLI handles everything: interactive setup, attack generation, firing attacks, judging responses, and producing reports. It's the primary surface for engineers and CI.
+
+## Install
+
+```bash
+npm install -g @agent-opfor/cli
+```
+
+**From source (contributors):**
+
+```bash
+git clone https://github.com/KeyValueSoftwareSystems/agent-opfor.git
+cd opfor
+npm install
+npm run install:cli   # builds + installs `opfor` globally
+```
+
+## Two testing modes
+
+Opfor decides which pipeline to run from `target.kind`. Pick one per config.
+
+| Mode    | Target                                          | How attacks are delivered                                                              | How responses are judged                                          |
+| ------- | ----------------------------------------------- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `agent` | HTTP endpoint or local script speaking LLM chat | Attacker LLM writes free-text adversarial prompts; opfor sends them                     | Judge LLM reads the target's text reply                            |
+| `mcp`   | MCP server (stdio process or remote URL)        | Opfor lists tools; attacker LLM crafts tool name + JSON args; opfor fires `tools/call`  | Judge LLM reads the JSON-RPC response, plus a resource + rug-pull scan |
+
+<Note>This is different from [running opfor itself as an MCP server](/mcp-server/overview) so AI assistants can invoke it.</Note>
+
+## Create a config
+
+**Interactive wizard (recommended):**
+
+```bash
+opfor setup           # prompts: agent vs mcp, provider, target, suite, effort, turns, telemetry
+opfor setup --agent   # skip the mode prompt, go straight to the agent wizard
+opfor setup --mcp     # skip the mode prompt, go straight to the MCP wizard
+```
+
+**Blank config to hand-edit:**
+
+```bash
+opfor setup --agent --empty   # minimal agent config, no prompts
+opfor setup --mcp --empty     # minimal MCP config, no prompts
+```
+
+Configs land in `.opfor/configs/opfor-config-<timestamp>-<id>.json` unless you pass `--config <path>`.
+
+<Warning>Add `.opfor/` to `.gitignore` — it holds configs and reports with embedded target metadata.</Warning>
+
+## Config shape
+
+<Tabs>
+  <Tab title="Agent">
+    ```json
+    {
+      "target": {
+        "kind": "agent",
+        "name": "My Support Bot",
+        "description": "A customer support chatbot with access to booking data and PII. Can issue partial refunds.",
+        "type": "http-endpoint",
+        "endpoint": "http://localhost:4000/chat",
+        "requestFormat": "openai"
+      },
+      "selection": { "mode": "suite", "suite": "owasp-llm-top10" },
+      "attackerLlm": {
+        "provider": "openai",
+        "model": "gpt-4o-mini",
+        "apiKeyEnv": "OPENAI_API_KEY"
+      },
+      "effort": "adaptive",
+      "turnMode": "multi",
+      "turns": 3
+    }
+    ```
+  </Tab>
+  <Tab title="MCP (stdio)">
+    ```json
+    {
+      "target": {
+        "kind": "mcp",
+        "name": "My MCP Server",
+        "transport": "stdio",
+        "command": "node",
+        "args": ["dist/index.js"]
+      },
+      "selection": { "mode": "suite", "suite": "owasp-mcp-top10" },
+      "attackerLlm": {
+        "provider": "openai",
+        "model": "gpt-4o-mini",
+        "apiKeyEnv": "OPENAI_API_KEY"
+      },
+      "effort": "adaptive",
+      "turnMode": "single",
+      "turns": 1
+    }
+    ```
+
+    For a remote MCP server, use `{ "transport": "url", "url": "https://...", "urlHeaders": { "Authorization": "Bearer ..." } }`.
+  </Tab>
+</Tabs>
+
+<Warning>`apiKeyEnv` is the **env var name** holding the key — never the key itself. Don't put raw keys in a config file.</Warning>
+
+## API keys
+
+The attacker/judge LLM key is read at `run` time. Set it in your shell or a `.env` file in the working directory:
+
+```bash
+export OPENAI_API_KEY=sk-...
+```
+
+Load a non-default path with `--env`:
+
+```bash
+opfor run --config <path> --env .env.prod
+```
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="Running scans" icon="play" href="/cli/running-scans">
+    Execute, runtime overrides, and reports.
+  </Card>
+  <Card title="Config reference" icon="book" href="/reference/config">
+    Every config field for agent and MCP targets.
+  </Card>
+</CardGroup>

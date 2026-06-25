@@ -1,0 +1,56 @@
+---
+title: "Evaluators & suites"
+description: "What opfor tests for, and how to choose."
+---
+
+An **evaluator** is a single attack-and-judge pattern — `prompt-injection`, `bola`, `sql-injection`, and so on. Each is a YAML file: the attacker LLM reads it to craft prompts, and the judge uses its pass/fail criteria to score the response.
+
+A **suite** is a named bundle of evaluators. Pick one suite for a broad scan, or list individual evaluator IDs for a focused one.
+
+## Standard vs curated suites
+
+- **Standard suites** (`owasp-llm-top10`, `owasp-mcp-top10`, `owasp-agentic-ai`, …) are auto-derived from each evaluator's `standards:` tags. Tag an evaluator and it joins the matching suite automatically — no drift.
+- **Curated suites** (`harmful-content`, `pre-deploy-critical`, `quick-smoke`, …) are hand-authored bundles for a specific purpose.
+
+## Two catalogs: agent vs MCP
+
+Opfor maintains two independent evaluator catalogs — one for **agent / chatbot** red-teaming, one for **MCP server** red-teaming. The target type selects which catalog the engine reads.
+
+<Warning>
+A few IDs exist in **both** catalogs with different content:
+
+- **`owasp-mcp-top10`** is a suite in both. The agent-side suite probes how an *agent* behaves around MCP tools; the MCP-side suite probes the *MCP server itself*. Same ID, different pipelines.
+- **`supply-chain`** exists in both as an evaluator, with content specific to each catalog.
+- Agent-tree evaluators prefixed `mcp-*` (e.g. `mcp-scope-escalation`) test an agent's MCP-handling behavior — they are **not** the MCP-catalog evaluators.
+</Warning>
+
+## Choosing what to run
+
+<Tabs>
+  <Tab title="A suite">
+    ```json
+    "selection": { "mode": "suite", "suite": "owasp-llm-top10" }
+    ```
+  </Tab>
+  <Tab title="Specific evaluators">
+    ```json
+    "selection": { "mode": "evaluators", "evaluators": ["prompt-injection", "jailbreaking", "bola"] }
+    ```
+  </Tab>
+  <Tab title="MCP server tool">
+    ```json
+    { "evaluator_ids": ["tool-description-injection", "scope-escalation"] }
+    ```
+  </Tab>
+</Tabs>
+
+The setup wizard (`opfor setup`) and the browser extension both let you pick a suite or individual evaluators interactively.
+
+<CardGroup cols={2}>
+  <Card title="Full reference" icon="shield-halved" href="/evaluators/reference">
+    Every evaluator and suite with OWASP mappings.
+  </Card>
+  <Card title="Author an evaluator" icon="pen" href="/evaluators/authoring">
+    Add your own — no TypeScript needed.
+  </Card>
+</CardGroup>

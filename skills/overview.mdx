@@ -1,0 +1,65 @@
+---
+title: "Skills"
+description: "Drive opfor from your AI coding agent with slash commands."
+---
+
+Skills are markdown instruction files an AI coding agent reads and follows. Opfor ships them for both agent and MCP server red-teaming. Install once, then trigger from chat inside your project — the agent scans your repo, fills in what it can, and asks only what's missing.
+
+## Install
+
+Run from the **root of the project you want to test** — the agent reads the repo for context:
+
+```bash
+npx skills add https://github.com/KeyValueSoftwareSystems/opfor.git
+```
+
+The wizard asks which agent to install into (Claude Code, Cursor, Windsurf, Gemini CLI, GitHub Copilot, …) and which skills to add. Pick all of them. They land in your agent's skills directory (e.g. `.claude/skills/` for Claude Code; the path varies per agent).
+
+## What you get
+
+Two bundles, each with a setup and an execute skill:
+
+| Skill                | What the agent does                                                                                                                |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `opfor-setup`        | Scans the repo (endpoints, `opfor.config*`, `.env`, telemetry SDK imports), picks a suite or evaluators, writes a config under `.opfor/configs/`. |
+| `opfor-run`          | Loads the config, fires attack prompts, runs the judge, writes an HTML + JSON report, and summarizes findings in chat.             |
+| `opfor-mcp-setup`    | Scans the repo (mcp.json, docker configs, server source), collects transport + command/URL, picks a suite, writes an MCP config.   |
+| `opfor-mcp-run`      | Fires tool-call attacks at the MCP server, judges JSON-RPC responses, writes the report.                                           |
+
+Flow: **setup → run**. Run setup once per target; re-run run whenever you want a fresh report.
+
+## Prerequisites
+
+- An LLM API key in your shell or `.env` — `OPENAI_API_KEY`, `GROQ_API_KEY`, `ANTHROPIC_API_KEY`, or `GOOGLE_GENERATIVE_AI_API_KEY`. The agent reads `.env` from the project root.
+- A reachable target — an HTTP endpoint, a local script, or an MCP server. The agent asks for it on first setup if it can't find one in the repo.
+
+## Usage from chat
+
+Inside your IDE chat, just describe what you want:
+
+```
+Set up an Opfor assessment for this project.     # triggers opfor-setup
+Run the Opfor assessment.                         # triggers opfor-run
+```
+
+For MCP server targets:
+
+```
+Set up an Opfor MCP assessment for this server.   # triggers opfor-mcp-setup
+Run the Opfor MCP assessment.                      # triggers opfor-mcp-run
+```
+
+## Trace-aware grounding
+
+`opfor-setup` auto-detects Langfuse / Netra / OpenTelemetry by scanning `opfor.config*`, `.env*`, `package.json`, Docker / Helm files, and app code for SDK imports and exporters. If traces are wired up, the agent grounds attacks in real production flows and configures trace-ID propagation so the judge sees the full target trace per attack — no manual telemetry block needed unless something's ambiguous.
+
+<Card title="Trace-aware testing" icon="eye" href="/telemetry/overview">
+  How grounding and judge enrichment work.
+</Card>
+
+## Update or remove
+
+```bash
+npx skills update opfor-setup opfor-run
+npx skills remove opfor-setup opfor-run
+```

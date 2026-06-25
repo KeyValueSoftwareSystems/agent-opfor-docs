@@ -1,0 +1,87 @@
+---
+title: "Authoring evaluators"
+description: "Add a new evaluator — no TypeScript needed."
+---
+
+Evaluators are YAML files under `evaluators/agent/` or `evaluators/mcp/` at the repo root. Adding one needs no code. After adding or editing, run `npm run build:catalog` to rebuild the skill catalogs.
+
+## Minimal evaluator
+
+```yaml
+schema_version: 1
+id: system-prompt-leakage
+name: System Prompt Leakage
+severity: critical # critical | high | medium | low
+standards:
+  owasp-llm: LLM07
+  atlas: AML.T0056
+description: One-line summary for judges and contributors
+pass_criteria: |-
+  - Bullet list of safe behaviors
+fail_criteria: |-
+  - Bullet list of vulnerable behaviors
+patterns:
+  - name: Pattern label
+    template: Attack prompt text. Use {{placeholder}} for LLM-filled variables.
+```
+
+## Fields
+
+| Field           | Required          | Notes                                                                                |
+| --------------- | ----------------- | ------------------------------------------------------------------------------------ |
+| `id`            | Yes               | Kebab-case, unique across both catalogs                                              |
+| `name`          | Yes               | Display name                                                                         |
+| `severity`      | Yes               | `critical`, `high`, `medium`, `low`                                                  |
+| `standards`     | Recommended       | Map of taxonomy key → ID; drives auto-derived suites (omit if unmapped)              |
+| `pass_criteria` | Yes               | Injected verbatim into the judge prompt                                              |
+| `fail_criteria` | Yes               | Injected verbatim into the judge prompt                                              |
+| `patterns`      | Flat layout only  | Non-empty array of `{ name, template }`; omit when using the directory layout        |
+| `description`   | Recommended       | Short summary for docs and skills                                                    |
+
+### Optional fields
+
+| Field                  | Purpose                                                              |
+| ---------------------- | ------------------------------------------------------------------- |
+| `schema_version`       | `1` when set                                                        |
+| `judge_needs_llm`      | `true` for semantic judgment; `false` for regex/static checks       |
+| `applies_to_all_tools` | MCP only — generate attacks for every tool in `tools/list`          |
+| `judge_hint`           | Extra guidance appended to the judge prompt                         |
+| `surfaces`             | `agent`, `browser`, `mcp` — informational                           |
+| `turn_mode`            | `single` or `multi` — informational; the run config decides at runtime |
+
+## Standards → auto-derived suites
+
+Setting a `standards` key automatically includes the evaluator in the matching suite.
+
+| Key             | Example values    | Auto-derived suite |
+| --------------- | ----------------- | ------------------ |
+| `owasp-llm`     | `LLM01` … `LLM10` | `owasp-llm-top10`  |
+| `owasp-mcp`     | `MCP01` … `MCP10` | `owasp-mcp-top10`  |
+| `owasp-agentic` | `ASI01` …         | `owasp-agentic-ai` |
+| `owasp-api`     | `API1`, `API4`, … | —                  |
+| `atlas`         | `AML.T0056`, …    | `mitre-atlas`      |
+| `eu-ai-act`     | `general`         | `eu-ai-act-bias`   |
+| `trust-safety`  | `general`         | —                  |
+
+<Warning>Don't use `ref:` or `mitre:` keys — the pre-commit hook rejects them on staged evaluator files.</Warning>
+
+## Directory layout for many patterns
+
+When patterns are long or numerous, split them into their own files:
+
+```
+evaluators/agent/<category>/<id>/
+  evaluator.yaml      ← all fields except patterns
+  patterns/
+    <slug>.yaml       ← { name, template }
+  <id>.test.yaml      ← { kind: response, pass_case, fail_case }
+```
+
+## Validate
+
+```bash
+npm run validate:skills        # check frontmatter against the Zod schema
+npm run build:catalog:check    # verify the catalog is up to date
+```
+
+Both run on pre-commit via Husky. `validate:skills` checks against the same schema the runtime loader uses, so a passing check means the engine will load your evaluator.

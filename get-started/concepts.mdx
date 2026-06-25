@@ -1,0 +1,61 @@
+---
+title: "Core concepts"
+description: "The handful of ideas behind every opfor scan."
+---
+
+Every opfor scan — whatever surface you run it from — is built from the same pieces. Understand these five and the rest of the docs follow.
+
+## Target
+
+The system under test. Opfor supports two kinds and picks its pipeline from the target type:
+
+- **Agent** — an HTTP endpoint or local script that speaks LLM chat. The attacker LLM writes adversarial prompts; opfor sends them and the judge reads the text reply.
+- **MCP server** — a stdio process or remote URL. Opfor enumerates the server's tools, the attacker LLM crafts tool names + JSON arguments, and opfor fires real `tools/call` requests.
+
+<Card title="Configure a target" icon="bullseye" href="/reference/config">
+  Full field reference for agent and MCP targets.
+</Card>
+
+## Evaluator
+
+An **evaluator** is a single attack-and-judge pattern — `prompt-injection`, `bola`, `sql-injection`, and so on. Each is a YAML file: the attacker LLM reads it to craft prompts, and the judge uses its pass/fail criteria to score the response. Adding an evaluator needs no code.
+
+## Suite
+
+A **suite** is a named bundle of evaluators. Standard suites like `owasp-llm-top10` are auto-derived from each evaluator's `standards:` tags; curated suites like `harmful-content` are hand-authored. Pick one suite for a broad scan, or list individual evaluator IDs for a narrow one.
+
+<Card title="Evaluators & suites" icon="shield-halved" href="/evaluators/overview">
+  What's available and how to choose.
+</Card>
+
+## Attack loop
+
+For each evaluator, opfor generates one or more attack specs and runs them against the target. Two dimensions control how thorough the loop is:
+
+- **Effort** — `adaptive` runs one sustained conversation per evaluator, with the attacker LLM picking tactics on the fly. `comprehensive` runs a fresh attack per named pattern — wider coverage, more LLM calls.
+- **Turns** — `single` sends one prompt and judges the reply. `multi` fires a short escalating conversation, generating a tougher follow-up after each response until the judge returns FAIL or the turn limit is hit.
+
+## Judge
+
+After the loop, an LLM-as-judge reads the full transcript against the evaluator's pass/fail criteria and returns a verdict, score, confidence, evidence, and reasoning. With [trace-aware testing](/telemetry/overview) enabled, the judge also sees the target's internal tool calls and retrievals — catching leaks that never appear in the final reply.
+
+## Report
+
+Every run writes its own folder under `.opfor/reports/` containing an HTML report (cover, executive summary, findings, per-turn detail) and a JSON report for CI. Nothing is hidden — every prompt, response, and verdict is logged and reproducible.
+
+## How it fits together
+
+<Steps>
+  <Step title="Configure">
+    Choose a target and a suite (or evaluator list). The wizard writes a config to `.opfor/configs/`.
+  </Step>
+  <Step title="Generate & attack">
+    Per evaluator, opfor builds attack specs and runs the turn loop against the target.
+  </Step>
+  <Step title="Judge">
+    A single judge call per attack scores the transcript and returns structured findings.
+  </Step>
+  <Step title="Report">
+    Findings are aggregated into an HTML + JSON report under `.opfor/reports/`.
+  </Step>
+</Steps>

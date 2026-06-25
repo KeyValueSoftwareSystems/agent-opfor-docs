@@ -1,34 +1,93 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mintlify Starter Kit",
+  "theme": "maple",
+  "name": "Opfor",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#ff4d4f",
+    "light": "#ff7875",
+    "dark": "#d9363e"
   },
   "favicon": "/favicon.svg",
   "navigation": {
-    "pages": [
+    "groups": [
       {
-        "group": "Getting Started",
+        "group": "Get Started",
+        "icon": "play",
         "pages": [
           "index",
-          "quickstart"
+          "get-started/quickstart",
+          "get-started/concepts"
+        ]
+      },
+      {
+        "group": "CLI",
+        "icon": "terminal",
+        "pages": [
+          "cli/overview",
+          "cli/running-scans",
+          "cli/autonomous"
+        ]
+      },
+      {
+        "group": "Browser Extension",
+        "icon": "chrome",
+        "pages": [
+          "browser-extension/overview"
+        ]
+      },
+      {
+        "group": "MCP Server",
+        "icon": "plug",
+        "pages": [
+          "mcp-server/overview"
+        ]
+      },
+      {
+        "group": "Skills",
+        "icon": "sparkles",
+        "pages": [
+          "skills/overview"
+        ]
+      },
+      {
+        "group": "SDK",
+        "icon": "code",
+        "pages": [
+          "sdk/overview"
+        ]
+      },
+      {
+        "group": "Evaluators & Suites",
+        "icon": "shield-halved",
+        "pages": [
+          "evaluators/overview",
+          "evaluators/reference",
+          "evaluators/authoring"
+        ]
+      },
+      {
+        "group": "Trace-aware Testing",
+        "icon": "eye",
+        "pages": [
+          "telemetry/overview"
+        ]
+      },
+      {
+        "group": "Reference",
+        "icon": "book",
+        "pages": [
+          "reference/config",
+          "reference/providers",
+          "reference/cli-commands"
         ]
       }
     ],
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
+          "anchor": "GitHub",
+          "href": "https://github.com/KeyValueSoftwareSystems/agent-opfor",
+          "icon": "github"
         }
       ]
     }
@@ -40,14 +99,14 @@
   "navbar": {
     "links": [
       {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "label": "GitHub",
+        "href": "https://github.com/KeyValueSoftwareSystems/agent-opfor"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://app.mintlify.com"
+      "label": "Get Started",
+      "href": "/get-started/quickstart"
     }
   },
   "contextual": {
@@ -55,18 +114,12 @@
       "copy",
       "view",
       "chatgpt",
-      "claude",
-      "perplexity",
-      "mcp",
-      "cursor",
-      "vscode"
+      "claude"
     ]
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "github": "https://github.com/KeyValueSoftwareSystems/agent-opfor"
     }
   }
 }
