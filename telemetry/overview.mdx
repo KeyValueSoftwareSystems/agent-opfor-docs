@@ -8,7 +8,7 @@ Plug opfor into your observability stack (Langfuse or Netra) and it unlocks two 
 - **Grounded attack generation** — opfor reads real production traces before generating attacks, so they mirror actual user flows, tool calls, and data instead of being generic.
 - **Judge enrichment** — opfor injects a trace ID into each target request, fetches the recorded trace afterward, and passes every tool call, retrieval, and span to the judge. This catches PII that leaks into a tool call but never reaches the user, and agents that fetch unauthorized data but render a clean reply.
 
-<Info>Available for **agent** targets via the [CLI](/cli/overview) today. Add the `telemetry` block below to your agent config file.</Info>
+<Info>Available for **agent** targets via the [CLI](/cli/overview) and [SDK](/sdk/overview). Add the `telemetry` block below to your agent config file.</Info>
 
 <Note>
 **Ingestion delay:** observability platforms process spans asynchronously. Opfor polls for the trace after all turns complete, so on multi-turn attacks some spans may not have arrived yet. Tune `traceFetchInitialDelayMs`, `traceFetchMaxAttempts`, and `traceFetchRetryDelayMs` at the cost of a longer scan. Grounded attack generation reads historic traces and isn't affected.

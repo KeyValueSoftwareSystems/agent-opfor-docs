@@ -226,7 +226,22 @@ await opfor.run({
 });
 ```
 
-Netra is configured the same way under a `netra: { baseUrl, apiKeyEnv, traceSelection }` block.
+For Netra, swap `provider` and use the `netra` block:
+
+```typescript
+telemetry: {
+  provider: "netra",
+  netra: {
+    baseUrl: "http://localhost:3000",
+    apiKeyEnv: "NETRA_API_KEY",
+    traceSelection: { lookbackHours: 24 },
+  },
+  enrichJudgeFromTrace: true,
+  propagation: { traceIdBodyField: "trace_id", traceIdStrategy: "per-attack" },
+}
+```
+
+See [Trace-aware testing](/telemetry/overview) for the full config reference.
 
 ## Results
 
