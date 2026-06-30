@@ -34,7 +34,7 @@ npm install
 npm run build
 ```
 
-Once published to npm, you can skip the clone and run it via `npx` (see below).
+Or run directly via `npx` without cloning (see the npx tab above).
 
 ## Register the server
 
@@ -67,15 +67,15 @@ Once published to npm, you can skip the clone and run it via `npx` (see below).
     }
     ```
   </Tab>
-  <Tab title="npx (published)">
-    Once `@agent-opfor/mcp` is on npm, no clone or global install is needed:
+  <Tab title="npx (recommended)">
+    No clone or global install needed:
 
     ```json
     {
       "mcpServers": {
         "opfor": {
           "command": "npx",
-          "args": ["-y", "@agent-opfor/mcp"]
+          "args": ["-y", "@keyvaluesystems/agent-opfor-mcp"]
         }
       }
     }

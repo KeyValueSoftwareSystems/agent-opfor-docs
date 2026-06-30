@@ -3,12 +3,12 @@ title: "SDK"
 description: "Run opfor scans programmatically from your own TypeScript or Node code."
 ---
 
-`@agent-opfor/sdk` is the programmatic surface — the same engine as the CLI, callable from your own code. Use it to embed red-teaming in custom tooling, gate CI on results, or build your own workflows. It's TypeScript-first.
+`@keyvaluesystems/agent-opfor-sdk` is the programmatic surface — the same engine as the CLI, callable from your own code. Use it to embed red-teaming in custom tooling, gate CI on results, or build your own workflows. It's TypeScript-first.
 
 ## Install
 
 ```bash
-npm install @agent-opfor/sdk
+npm install @keyvaluesystems/agent-opfor-sdk
 ```
 
 ## Quickstart
@@ -18,7 +18,7 @@ Both a class-based and a functional API are available — they're equivalent, so
 <Tabs>
   <Tab title="Class">
     ```typescript
-    import { Opfor } from "@agent-opfor/sdk";
+    import { Opfor } from "@keyvaluesystems/agent-opfor-sdk";
 
     const opfor = new Opfor({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -32,7 +32,7 @@ Both a class-based and a functional API are available — they're equivalent, so
   </Tab>
   <Tab title="Functional">
     ```typescript
-    import { run, report } from "@agent-opfor/sdk";
+    import { run, report } from "@keyvaluesystems/agent-opfor-sdk";
 
     const results = await run({
       target: { url: "https://api.example.com/chat", apiKeyEnv: "TARGET_API_KEY" },
@@ -155,7 +155,7 @@ Provider objects accept `{ provider, model, apiKeyEnv, baseUrl? }`. See [provide
 `hunt()` runs the [autonomous campaign](/cli/autonomous) programmatically — adaptive multi-turn attacks driven by an AI agent, with progress streaming.
 
 ```typescript
-import { hunt } from "@agent-opfor/sdk";
+import { hunt } from "@keyvaluesystems/agent-opfor-sdk";
 
 const results = await hunt({
   target: { url: "https://api.example.com/chat", apiKey: process.env.TARGET_API_KEY },
@@ -263,14 +263,14 @@ await r.json("./report.json");
 await r.html("./report.html");
 
 // functional
-import { report } from "@agent-opfor/sdk";
+import { report } from "@keyvaluesystems/agent-opfor-sdk";
 await report(results).html("./report.html");
 ```
 
 ## Gate CI on findings
 
 ```typescript
-import { run } from "@agent-opfor/sdk";
+import { run } from "@keyvaluesystems/agent-opfor-sdk";
 
 const results = await run({
   target: { url: process.env.TARGET_URL!, apiKeyEnv: "TARGET_API_KEY" },
@@ -295,7 +295,7 @@ import {
   report,         // generate reports from results
   listSuites,     // list available suites
   listEvaluators, // list available evaluators (optionally { kind: "mcp" })
-} from "@agent-opfor/sdk";
+} from "@keyvaluesystems/agent-opfor-sdk";
 ```
 
 Types are exported too: `RunOptions`, `RunResults`, `TargetConfig`, `McpTargetConfig`, `Finding`, `EvaluatorResult`, `AttackResult`, `TelemetryConfig`, and the `Hunt*` variants.

@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "maple",
+  "theme": "aspen",
   "name": "Opfor",
   "colors": {
     "primary": "#ff4d4f",
@@ -93,8 +93,8 @@
     }
   },
   "logo": {
-    "light": "/logo/agent-opfor-logo.png",
-    "dark": "/logo/agent-opfor-logo.png"
+    "light": "/logo/logo-light.png",
+    "dark": "/logo/logo-dark.png"
   },
   "navbar": {
     "links": [
@@ -118,6 +118,23 @@
     ]
   },
   "footer": {
+    "links": [
+      {
+        "header": "Package",
+        "items": [
+          { "label": "CLI on npm", "href": "https://www.npmjs.com/package/@keyvaluesystems/agent-opfor-cli" },
+          { "label": "SDK on npm", "href": "https://www.npmjs.com/package/@keyvaluesystems/agent-opfor-sdk" },
+          { "label": "MCP on npm", "href": "https://www.npmjs.com/package/@keyvaluesystems/agent-opfor-mcp" }
+        ]
+      },
+      {
+        "header": "Links",
+        "items": [
+          { "label": "Website", "href": "https://agentopfor.ai" },
+          { "label": "GitHub", "href": "https://github.com/KeyValueSoftwareSystems/agent-opfor" }
+        ]
+      }
+    ],
     "socials": {
       "github": "https://github.com/KeyValueSoftwareSystems/agent-opfor"
     }
