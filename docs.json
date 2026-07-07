@@ -94,8 +94,8 @@
     }
   },
   "logo": {
-    "light": "/logo/logo-light.png",
-    "dark": "/logo/logo-dark.png"
+    "light": "/logo/Opfor_black.svg",
+    "dark": "/logo/Opfor_white.svg"
   },
   "navbar": {
     "links": [
