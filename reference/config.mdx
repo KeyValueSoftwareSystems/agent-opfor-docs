@@ -15,7 +15,7 @@ An opfor config is a flat JSON object. `target.kind` selects the pipeline; the r
 | `selection.evaluators` | For evaluators                | Array of evaluator IDs                                                                |
 | `attackerLlm.provider` | Yes                           | See [providers](/reference/providers)                                                |
 | `attackerLlm.model`    | Yes                           | Model name (e.g. `gpt-4o-mini`)                                                       |
-| `attackerLlm.apiKeyEnv`| Yes                           | Env var **name** holding the API key                                                 |
+| `attackerLlm.apiKeyEnv`| No                             | Env var **name** holding the API key. Falls back to the provider's default env var when absent |
 | `attackerLlm.baseURL`  | For openai-compatible / azure | Base URL for the LLM endpoint                                                         |
 | `judgeLlm.*`           | No                            | Same fields as `attackerLlm`; a separate judge model. Falls back to `attackerLlm`     |
 | `effort`               | Yes                           | `"adaptive"` or `"comprehensive"`                                                     |
@@ -36,10 +36,11 @@ An opfor config is a flat JSON object. `target.kind` selects the pipeline; the r
 | `target.requestFormat`  | For HTTP           | `"openai"`, `"json"`, or `"auto"` (default). Ignored when `stateful` is `false` (forces OpenAI shape) |
 | `target.model`          | For HTTP / openai  | Model name to send in the request body                                                               |
 | `target.apiKeyEnv`      | No                 | Env var **name** holding the target's API key                                                        |
-| `target.headers`        | No                 | Custom HTTP headers, merged with built-ins                                                           |
+| `target.headers`        | No                 | Custom HTTP headers (e.g. `{"X-Api-Key": "${TARGET_API_KEY}"}`). Merged with built-ins. Values support `${VAR}` expansion |
 | `target.promptPath`     | No                 | Dot-path for the prompt field (e.g. `"input.message"`). Defaults to top-level `prompt`               |
 | `target.responsePath`   | No                 | Dot-path to extract the reply (e.g. `"data.reply"`)                                                  |
-| `target.sessionIdField` | No                 | Body field for the session ID on multi-turn requests (stateful only)                                 |
+| `target.session`        | No                 | Session id send/receive config (client- or server-owned) — see [session handling](/reference/sessions) |
+| `target.sessionIdField` | No                 | Legacy shorthand for `session: { send: { in: "body", name } }` (client-owned, body). Still honored   |
 | `target.stateful`       | No                 | `true` (default): send current prompt + session ID. `false`: send full chat history each turn        |
 | `target.scriptPath`     | For `local-script` | Path to the `.js`/`.py` adapter, relative to cwd                                                     |
 
@@ -47,7 +48,7 @@ An opfor config is a flat JSON object. `target.kind` selects the pipeline; the r
 
 | `target.stateful` | Use when                                                            | Opfor sends per turn                                                        |
 | ----------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `true` (default)  | Your app keeps conversation history, keyed by a session id          | Only the current prompt + a session id at `target.sessionIdField`           |
+| `true` (default)  | Your app keeps conversation history, keyed by a session id          | Only the current prompt + a session id (see [session handling](/reference/sessions)) |
 | `false`           | Raw, stateless LLM endpoints (OpenAI, Groq, vLLM, LiteLLM…)          | The full `{role, content}` history as a chat-completions `messages` array   |
 
 ## MCP target (`target.kind: "mcp"`)

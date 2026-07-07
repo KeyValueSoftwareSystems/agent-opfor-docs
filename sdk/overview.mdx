@@ -23,7 +23,7 @@ Both a class-based and a functional API are available — they're equivalent, so
     const opfor = new Opfor({ apiKey: process.env.ANTHROPIC_API_KEY });
 
     const results = await opfor.run({
-      target: { url: "https://api.example.com/chat", apiKeyEnv: "TARGET_API_KEY" },
+      target: { url: "https://api.example.com/chat", apiKey: process.env.TARGET_API_KEY },
       suite: "owasp-llm-top10",
     });
 
@@ -35,7 +35,7 @@ Both a class-based and a functional API are available — they're equivalent, so
     import { run, report } from "@keyvaluesystems/agent-opfor-sdk";
 
     const results = await run({
-      target: { url: "https://api.example.com/chat", apiKeyEnv: "TARGET_API_KEY" },
+      target: { url: "https://api.example.com/chat", apiKey: process.env.TARGET_API_KEY },
       suite: "owasp-llm-top10",
       apiKey: process.env.ANTHROPIC_API_KEY,
     });
@@ -51,7 +51,7 @@ Run a suite or a list of evaluators against a target.
 
 ```typescript
 const results = await opfor.run({
-  target: { url: "https://api.example.com/chat", apiKeyEnv: "TARGET_API_KEY", model: "gpt-4o" },
+  target: { url: "https://api.example.com/chat", apiKey: process.env.TARGET_API_KEY, model: "gpt-4o" },
   suite: "owasp-llm-top10",
   strategy: { effort: "adaptive", turnMode: "multi", turns: 3 },
   attackerModel: "claude-sonnet-4",
@@ -77,7 +77,7 @@ await opfor.run({
       url: "https://api.example.com/chat",
       name: "My Chatbot",
       description: "Customer support chatbot with order-database access",
-      apiKeyEnv: "TARGET_API_KEY",
+      apiKey: process.env.TARGET_API_KEY,
       model: "gpt-4o",
       headers: { "X-Custom-Header": "value" },
       requestFormat: "openai",     // "auto" | "openai" | "json"
@@ -91,9 +91,22 @@ await opfor.run({
     // Stateless — opfor sends full chat history each turn (raw LLM APIs)
     target: { url: "https://api.openai.com/v1/chat/completions", stateful: false }
 
-    // Stateful — your server keeps history, keyed by a session id
+    // Stateful, client-owned — your server keeps history, keyed by a session id opfor sends
     target: { url: "https://api.example.com/chat", stateful: true, sessionField: "session_id" }
+
+    // Stateful, server-owned — the target mints its own id and returns it; opfor
+    // sends none on turn 1, then captures and echoes it
+    target: {
+      url: "https://api.example.com/chat",
+      stateful: true,
+      session: {
+        send: { in: "header", name: "Mcp-Session-Id" },
+        receive: { in: "header", name: "Mcp-Session-Id" },
+      },
+    }
     ```
+
+    See [session handling](/reference/sessions) for the full client- vs server-owned model.
   </Tab>
   <Tab title="Local script">
     ```typescript
@@ -144,11 +157,11 @@ await opfor.run({
   target: { url: "https://api.example.com/chat" },
   suite: "owasp-llm-top10",
   attackerModel: "claude-sonnet-4",
-  judgeModel: { provider: "anthropic", model: "claude-opus-4", apiKeyEnv: "ANTHROPIC_API_KEY" },
+  judgeModel: { provider: "anthropic", model: "claude-opus-4", apiKey: process.env.ANTHROPIC_API_KEY },
 });
 ```
 
-Provider objects accept `{ provider, model, apiKeyEnv, baseUrl? }`. See [providers](/reference/providers) for the full list and env vars.
+Provider objects accept `{ provider, model, apiKey, baseUrl? }` — `apiKey` is the key **value**, not an env var name. See [providers](/reference/providers) for the full provider list.
 
 ## Autonomous mode
 
@@ -288,7 +301,7 @@ await report(results).html("./report.html");
 import { run } from "@keyvaluesystems/agent-opfor-sdk";
 
 const results = await run({
-  target: { url: process.env.TARGET_URL!, apiKeyEnv: "TARGET_API_KEY" },
+  target: { url: process.env.TARGET_URL!, apiKey: process.env.TARGET_API_KEY },
   suite: "owasp-llm-top10",
   apiKey: process.env.ANTHROPIC_API_KEY,
 });

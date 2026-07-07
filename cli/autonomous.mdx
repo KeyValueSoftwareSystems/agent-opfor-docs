@@ -47,6 +47,8 @@ The campaign starts with recon, then the commander spawns operators to pursue le
     | `--name <name>`              | Display name for the target     |
     | `--target-model <id>`        | Model value sent in requests    |
     | `--stateless` / `--stateful` | How conversation history is handled |
+    | `--session-field <name>`     | Body field for a client-owned session id |
+    | `--target-config <path>`     | JSON file with a run-style `target` block — enables server-owned & header sessions; see [session handling](/reference/sessions) |
   </Tab>
   <Tab title="Models">
     | Option                  | Default  |
@@ -75,9 +77,17 @@ The campaign starts with recon, then the commander spawns operators to pursue le
   </Tab>
 </Tabs>
 
-## Driving the agents with OpenRouter
+## Authentication
 
-To run the agents through OpenRouter instead of Anthropic directly, point the base URL at OpenRouter and supply a token:
+Credentials for the agents that drive the campaign are resolved in order:
+
+1. `ANTHROPIC_API_KEY` — pay-per-token Anthropic API key.
+2. `CLAUDE_CODE_OAUTH_TOKEN` — token from `claude setup-token`.
+3. Local Claude subscription — falls back to your `claude login` session (Pro/Max) if neither is set, using that subscription's usage/rate limits.
+
+Options 2 and 3 require the [Claude Code CLI](https://docs.claude.com/claude-code) (`npm install -g @anthropic-ai/claude-code`).
+
+**Gateway / self-hosted proxy** (e.g. OpenRouter) — set both together (a token without a base URL is ignored):
 
 ```bash
 export ANTHROPIC_BASE_URL=https://openrouter.ai/api
@@ -90,7 +100,7 @@ The agents draw on a built-in library of vulnerability classes, personas, and st
 
 | Category            | Examples                                                                                                              |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| **Vulnerability classes** | jailbreak · prompt-injection · system-prompt-leak · sensitive-disclosure · harmful-content · tool-misuse · business-integrity · misinformation · bias |
+| **Vulnerability classes** | bias · harmful · accuracy · disclosure · injection · excessive-agency · brand-conduct · access-control · mcp-usage |
 | **Personas**        | naive-user · journalist · security-auditor · frustrated-developer · entitled-customer · fellow-ai                     |
 | **Strategies**      | fictional-framing · authority-escalation · gradual-trust · instruction-override · encoding-obfuscation · context-overload |
 

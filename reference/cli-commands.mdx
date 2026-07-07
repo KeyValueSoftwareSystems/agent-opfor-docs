@@ -28,6 +28,7 @@ Reads a config, fires attacks, judges, and writes the report. With no `--config`
 | `--turns <n>`      | Override turn count (`1` forces single-turn)           |
 | `--output <dir>`   | Override report parent directory (default `.opfor/reports/`) |
 | `--env <path>`     | Load env vars from a non-default `.env` path           |
+| `--events <path>`  | Stream NDJSON run lifecycle events to `<path>` (for CI/automation) |
 
 ## `opfor hunt`
 
@@ -45,6 +46,8 @@ Autonomous red-team campaign driven by an AI agent. See the [autonomous mode gui
     | `--name <name>`              | Display name for the target          |
     | `--target-model <id>`        | Model value sent in requests         |
     | `--stateless` / `--stateful` | Conversation history handling        |
+    | `--session-field <name>`     | Body field for a client-owned session id |
+    | `--target-config <path>`     | JSON file with a run-style `target` block — enables server-owned & header sessions; see [session handling](/reference/sessions) |
   </Accordion>
   <Accordion title="Models">
     | Flag                    | Default  |

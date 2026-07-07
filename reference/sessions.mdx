@@ -1,0 +1,91 @@
+---
+title: "Target session handling"
+description: "How opfor delivers conversation context and session ids across turns."
+---
+
+How opfor delivers conversation context to an HTTP agent target across turns, and how it threads a session id. One model, shared by `opfor run` (config file, wizard, SDK), the MCP server tool, and `opfor hunt`.
+
+There are two independent decisions.
+
+## 1. Stateless vs stateful — who holds the history
+
+| `stateful`        | The target…                                                                   | opfor sends per turn                                                        |
+| ------------------ | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| `false`             | has no memory (raw LLM APIs — OpenAI, Groq, Anthropic-compat, LiteLLM, vLLM). | the full `{role, content}` history as a chat-completions `messages` array. No session id; forces OpenAI shape. |
+| `true` (default)    | keeps conversation history server-side, keyed by a session id opfor passes.  | only the current turn's prompt + the session id.                            |
+
+## 2. Client-owned vs server-owned — who mints the session id (stateful only)
+
+| Mode | Who mints the id | Turn 1 | Examples |
+| ---- | ----------------- | ------ | -------- |
+| **client-owned** | opfor | opfor sends its id from turn 1 | LangGraph `thread_id`, Rasa `sender_id`, most custom agents |
+| **server-owned** | the target | opfor sends **no** id, then echoes the one the target returns | OpenAI Responses `previous_response_id`, MCP `Mcp-Session-Id`, cookie sessions |
+
+<Tip>Does your target return a session id in its response (body field, header, or `Set-Cookie`)? That's **server-owned**. Does it just expect you to supply an id it keys on? That's **client-owned**. Raw LLM API with no session concept? That's **stateless**.</Tip>
+
+## The `session` config
+
+```jsonc
+"session": {
+  "send":    { "in": "body" | "header", "name": "…" },               // where opfor WRITES the id
+  "receive": { "in": "body" | "header" | "set-cookie", "name": "…" } // where opfor READS a returned id
+}
+```
+
+- **Presence of `receive` selects server-owned mode**; its absence is client-owned.
+- `send` is always required when `session` is set, and `name` on it is required.
+- `send.in: "body"` → `name` is a dot-path in the request body; `"header"` → an HTTP header name.
+- `receive.in`: `"body"` or `"header"` both require a non-empty `name`. `"set-cookie"` is the only receive location where `name` is optional — it captures the returned cookie pair, echoed back via a `Cookie` header (set `send` to `{ "in": "header", "name": "Cookie" }`).
+- **Legacy alias:** `sessionIdField: "x"` (CLI) / `sessionField: "x"` (SDK) is shorthand for `session: { send: { in: "body", name: "x" } }` — client-owned, body. Still honored; prefer `session` for new configs.
+
+### Server-owned turn-1 flow
+
+1. Turn 1 — the request goes out with **no** session id.
+2. opfor reads the returned id via `receive` and remembers it.
+3. Turns 2+ — that id is echoed via `send`.
+
+If a server-owned target returns no id, opfor falls back to a client-minted id and logs a warning.
+
+## Per-surface syntax
+
+| Surface | How to configure |
+| ------- | ----------------- |
+| `opfor run` / config file | `target.stateful` + `target.session` (or legacy `target.sessionIdField`) — see [config reference](/reference/config) |
+| SDK | `target.stateful` + `target.session` (or legacy `target.sessionField`) — see [SDK reference](/sdk/overview) |
+| MCP server tool | `agent_session_send_in` / `agent_session_send_name` / `agent_session_receive_in` / `agent_session_receive_name` — see [MCP server](/mcp-server/overview) |
+| `opfor hunt` | `--target-config <file>` (a run-style `target` block); or `--stateful --session-field <name>`; or the `--ui` setup form — see [autonomous mode](/cli/autonomous) |
+
+## Examples
+
+<Tabs>
+  <Tab title="Client-owned (body)">
+    ```jsonc
+    "session": { "send": { "in": "body", "name": "session_id" } }
+    ```
+  </Tab>
+  <Tab title="Server-owned (body)">
+    ```jsonc
+    "session": {
+      "send":    { "in": "body", "name": "session_id" },
+      "receive": { "in": "body", "name": "session_id" }
+    }
+    ```
+  </Tab>
+  <Tab title="Server-owned (header, MCP-style)">
+    ```jsonc
+    "session": {
+      "send":    { "in": "header", "name": "Mcp-Session-Id" },
+      "receive": { "in": "header", "name": "Mcp-Session-Id" }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Other target types
+
+- **Local-script** (`target.type: "local-script"`): `sessionId` is always included in the stdin JSON on multi-turn attacks; your script owns the history. `session` / `stateful` do not apply.
+- **Browser extension**: drives a live chat UI in the DOM — there is no session id to configure.
+
+<Warning>
+For `opfor hunt`, each attack thread invents its own id for client-owned targets. For **server-owned** targets, each thread captures the target's returned id independently — and because the session belongs to the target, **forking a thread starts a new server session** (opfor can't fork a session it doesn't own).
+</Warning>

@@ -78,6 +78,7 @@
         "pages": [
           "reference/config",
           "reference/providers",
+          "reference/sessions",
           "reference/cli-commands"
         ]
       }
