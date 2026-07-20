@@ -158,12 +158,15 @@ Configures a run and writes `opfor.config.json`. Returns the config path to pass
 
     **Run settings:**
 
-    | Parameter     | Type                          | Description                                    |
-    | ------------- | ----------------------------- | ---------------------------------------------- |
-    | `effort`      | `adaptive` \| `comprehensive` | Defaults to `adaptive`                         |
-    | `turns`       | number (1–10)                 | Turns per attack; `1` = single-turn (default)  |
-    | `output_dir`  | string                        | Where to write the config (default `.`)        |
-    | `config_path` | string                        | Full config path (overrides `output_dir`)      |
+    | Parameter           | Type                          | Description                                          |
+    | ------------------- | ----------------------------- | ---------------------------------------------------- |
+    | `effort`            | `adaptive` \| `comprehensive` | Defaults to `adaptive`                               |
+    | `turns`             | number (1–10)                 | Turns per attack; `1` = single-turn (default)        |
+    | `attack_objective`  | string                        | Free-text mission steering every evaluator's attacks |
+    | `judge_hint`        | string                        | Free-text steering for the judge's verdict           |
+    | `business_use_case` | string                        | Free-text domain/business context for the target agent |
+    | `output_dir`        | string                        | Where to write the config (default `.`)              |
+    | `config_path`       | string                        | Full config path (overrides `output_dir`)            |
   </Accordion>
 </AccordionGroup>
 
@@ -171,12 +174,15 @@ Configures a run and writes `opfor.config.json`. Returns the config path to pass
 
 Runs the full evaluation from a config produced by `opfor_setup`.
 
-| Parameter         | Type                          | Required | Description                             |
-| ----------------- | ----------------------------- | -------- | --------------------------------------- |
-| `config_path`     | string                        | Yes      | Path to the `opfor.config.json`         |
-| `output_dir`      | string                        | No       | Report directory (default: config dir)  |
-| `effort_override` | `adaptive` \| `comprehensive` | No       | Override config effort                  |
-| `turns_override`  | number (1–10)                 | No       | Override config turns                   |
+| Parameter                    | Type                          | Required | Description                             |
+| ---------------------------- | ----------------------------- | -------- | --------------------------------------- |
+| `config_path`                | string                        | Yes      | Path to the `opfor.config.json`         |
+| `output_dir`                 | string                        | No       | Report directory (default: config dir)  |
+| `effort_override`            | `adaptive` \| `comprehensive` | No       | Override config effort                  |
+| `turns_override`             | number (1–10)                 | No       | Override config turns                   |
+| `objective_override`         | string                        | No       | Override the attack objective from config    |
+| `judge_hint_override`        | string                        | No       | Override the judge hint from config          |
+| `business_use_case_override` | string                        | No       | Override the business use case from config   |
 
 ## API key resolution
 

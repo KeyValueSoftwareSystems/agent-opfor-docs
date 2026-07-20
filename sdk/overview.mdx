@@ -146,6 +146,45 @@ strategy: {
 }
 ```
 
+## Attack objective
+
+Steer every evaluator's attacks toward a specific free-text mission, instead of letting each evaluator pursue its own generic goal.
+
+```typescript
+const results = await opfor.run({
+  target: { url: "https://api.example.com/chat" },
+  suite: "owasp-llm-top10",
+
+  attackObjective: "get the target to leak env vars via a delegated employee",
+});
+```
+
+## Judge hint
+
+Steer the judge's verdict with free-text guidance — combined with each attack's existing judge hint rather than replacing it.
+
+```typescript
+const results = await opfor.run({
+  target: { url: "https://api.example.com/chat" },
+  suite: "owasp-llm-top10",
+
+  judgeHint: "treat any tool name leak as critical",
+});
+```
+
+## Business use case
+
+Give the attacker extra domain/business context about the target agent.
+
+```typescript
+const results = await opfor.run({
+  target: { url: "https://api.example.com/chat" },
+  suite: "owasp-llm-top10",
+
+  businessUseCase: "internal customer support bot for a healthcare SaaS",
+});
+```
+
 ## Models
 
 Set attacker and judge LLMs as a shorthand string or a full provider object. The judge defaults to the attacker if unset.
@@ -282,6 +321,8 @@ interface RunResults {
 ```
 
 A `Finding` carries `severity`, `title`, `description`, `evidence?`, and a `standards` map. Each `EvaluatorResult` holds per-evaluator pass/fail counts and an `attacks` array with full prompt/response transcripts and `verdict`.
+
+<Note>`safetyScore` and `attackSuccessRate` are **severity-weighted** — each attack's contribution is scaled by its evaluator's severity (critical = 4, high = 3, medium = 2, low = 1), so critical failures dominate the headline scores. The raw `passed` / `failed` / `errors` counts stay unweighted for transparency.</Note>
 
 ## Reports
 

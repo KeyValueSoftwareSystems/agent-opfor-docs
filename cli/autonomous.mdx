@@ -39,7 +39,7 @@ The campaign starts with recon, then the commander spawns operators to pursue le
   <Tab title="Target">
     | Option                       | Description                     |
     | ---------------------------- | ------------------------------- |
-    | `--endpoint <url>`           | Target HTTP endpoint (required) |
+    | `--endpoint <url>`           | Target HTTP endpoint (required unless a [local-script target](#local-script-targets) is given via `--target-config`) |
     | `--objective <text>`         | Attack objective                |
     | `--objective-file <path>`    | Read objective from a file      |
     | `--target-key-env <var>`     | Env var holding the target API key |
@@ -48,7 +48,7 @@ The campaign starts with recon, then the commander spawns operators to pursue le
     | `--target-model <id>`        | Model value sent in requests    |
     | `--stateless` / `--stateful` | How conversation history is handled |
     | `--session-field <name>`     | Body field for a client-owned session id |
-    | `--target-config <path>`     | JSON file with a run-style `target` block — enables server-owned & header sessions; see [session handling](/reference/sessions) |
+    | `--target-config <path>`     | JSON file with a run-style `target` block — enables server-owned & header sessions, and [local-script targets](#local-script-targets); see [session handling](/reference/sessions) |
   </Tab>
   <Tab title="Models">
     | Option                  | Default  |
@@ -76,6 +76,30 @@ The campaign starts with recon, then the commander spawns operators to pursue le
     | `--ui-port <port>` | `3847`           | Dashboard port        |
   </Tab>
 </Tabs>
+
+## Local-script targets
+
+For targets that can't be modeled as a simple HTTP request/response — async/polling APIs, session ids embedded in a URL path segment, or auth flows needing custom logic — point `opfor hunt` at a local script adapter instead of an endpoint. It uses the same `type: "local-script"` shape and stdin/stdout contract as `opfor run` (see the [local script contract](/reference/config#local-script-contract)).
+
+```json target.json
+{
+  "target": {
+    "kind": "agent",
+    "type": "local-script",
+    "scriptPath": "./opfor-local-target.js"
+  }
+}
+```
+
+```bash
+opfor hunt --target-config target.json --objective "Probe for jailbreaks and safety bypasses."
+```
+
+<Note>
+There is no `--endpoint`, `--script-path`, or similar flag for this — local-script targets are configured **only** via `--target-config`. `--name` still overrides the display name (it defaults to the script's basename).
+</Note>
+
+Hunt's per-thread `threadId` is passed to the script as `sessionId`, so each forked attack thread gets an isolated session automatically — no extra wiring needed. The script has 240 seconds per turn to respond before it's killed.
 
 ## Authentication
 

@@ -21,6 +21,9 @@ An opfor config is a flat JSON object. `target.kind` selects the pipeline; the r
 | `effort`               | Yes                           | `"adaptive"` or `"comprehensive"`                                                     |
 | `turnMode`             | No                            | `"single"` (default) or `"multi"`                                                    |
 | `turns`                | Yes                           | Turns per attack. Ignored when `turnMode` is `"single"`. Range 1–10 (wizard default 3) |
+| `attackObjective`      | No                            | Free-text primary mission steering every evaluator's attacks. Also settable via `--objective`/`--objective-file` on `opfor run` |
+| `judgeHint`            | No                            | Free-text steering for the judge's verdict. Combined with each attack's existing judge hint rather than replacing it. Also settable via `--judge-hint`/`--judge-hint-file` |
+| `businessUseCase`      | No                            | Free-text domain/business context for the target agent. Also settable via `--business-use-case`/`--business-use-case-file` |
 | `telemetry`            | No                            | Trace-aware testing — see [telemetry](/telemetry/overview)                                    |
 
 <Warning>`apiKeyEnv` is the **env var name** holding the key, never the key itself. Don't put raw keys in a config file.</Warning>

@@ -9,8 +9,8 @@ A **suite** is a named bundle of evaluators. Pick one suite for a broad scan, or
 
 ## Standard vs curated suites
 
-- **Standard suites** (`owasp-llm-top10`, `owasp-mcp-top10`, `owasp-agentic-ai`, …) are auto-derived from each evaluator's `standards:` tags. Tag an evaluator and it joins the matching suite automatically — no drift.
-- **Curated suites** (`harmful-content`, `pre-deploy-critical`, `quick-smoke`, …) are hand-authored bundles for a specific purpose.
+- **Standard (derived) suites** (`owasp-llm-top10`, `owasp-agentic-ai`, `owasp-mcp-top10`, `owasp-api-top10`, `eu-ai-act`, `nist-ai-rmf`, `mitre-atlas`) are auto-derived from each evaluator's `standards:` tags. Tag an evaluator and it joins the matching suite automatically — no drift. One evaluator can land in several suites at once.
+- **Curated suites** (`harmful-content`, `output-trust-and-safety`, `pre-deploy-critical`, `quick-smoke`, `mcp-smoke`) are hand-authored bundles for a specific purpose.
 
 ## Two catalogs: agent vs MCP
 
@@ -19,9 +19,10 @@ Opfor maintains two independent evaluator catalogs — one for **agent / chatbot
 <Warning>
 A few IDs exist in **both** catalogs with different content:
 
-- **`owasp-mcp-top10`** is a suite in both. The agent-side suite probes how an *agent* behaves around MCP tools; the MCP-side suite probes the *MCP server itself*. Same ID, different pipelines.
-- **`supply-chain`** exists in both as an evaluator, with content specific to each catalog.
+- **`owasp-mcp-top10`** is a suite in both. The agent-side suite (10) probes how an *agent* behaves around MCP tools; the MCP-side suite (23) probes the *MCP server itself*. Same ID, different pipelines.
+- **`supply-chain`** exists in both as an evaluator, with content specific to each catalog (the MCP-side id is `mcp-supply-chain`, a distinct evaluator).
 - Agent-tree evaluators prefixed `mcp-*` (e.g. `mcp-scope-escalation`) test an agent's MCP-handling behavior — they are **not** the MCP-catalog evaluators.
+- Evaluators with a **`-source`** suffix (e.g. `prompt-injection-source`) are static source/sink code-analysis checks paired with a dynamic sibling — they have no attack patterns and are skipped by the pattern-based judge pipeline.
 </Warning>
 
 ## Choosing what to run

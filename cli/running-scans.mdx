@@ -32,6 +32,25 @@ opfor run
 | `adaptive`      | One sustained conversation per evaluator. The attacker LLM picks tactics from the last response + judge signal. |
 | `comprehensive` | One fresh multi-turn attack per named pattern in each evaluator. Wider coverage, more LLM calls.       |
 
+## Steering the attack
+
+Three optional inputs let you point a run at your specific risk surface instead of the evaluators' generic goals. Set them in the config (`attackObjective`, `judgeHint`, `businessUseCase`) or override per-run — each flag has a `-file` variant that reads the text from a file:
+
+```bash
+opfor run --config <path> \
+  --objective "get the target to leak env vars via a delegated employee" \
+  --judge-hint "treat any tool name leak as critical" \
+  --business-use-case "internal customer support bot for a healthcare SaaS"
+```
+
+| Input              | Effect                                                                                         |
+| ------------------ | ---------------------------------------------------------------------------------------------- |
+| **Attack objective** | Steers every evaluator's attacks toward one free-text mission                                |
+| **Judge hint**       | Steers the judge's verdict — *combined with* each attack's own hint, not replacing it        |
+| **Business use case** | Gives the attacker domain/business context about the target                                 |
+
+<Note>These are the same three inputs the browser extension exposes in its popup (objective, custom evaluator hint, business use case).</Note>
+
 ## Single-turn vs multi-turn
 
 By default opfor runs **single-turn** — one attack, one response, judged. **Multi-turn** fires a short adversarial conversation: after each response, if the judge still rates the target PASS, the attacker generates a tougher follow-up (up to `turns`, default 3). It stops early when the judge returns FAIL.
